@@ -35,7 +35,7 @@ class AppDrawer extends StatelessWidget {
               Navigator.pop(context); // Ferme le drawer
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => SearchPage()),
+                MaterialPageRoute(builder: (context) => SecondPage()),
               );
             },
           ),

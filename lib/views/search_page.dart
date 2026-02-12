@@ -1,32 +1,257 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../viewmodels/search_viewmodel.dart';
+import '../models/search_result.dart';
 
-import 'package:api_poke_tcg/viewmodels/home_viewmodel.dart';
+class SecondPage extends StatelessWidget {
+  final TextEditingController _controller = TextEditingController();
 
-import 'package:api_poke_tcg/widgets/app_drawer.dart';
-
-class SearchPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => HomeViewModel(),
-      child: SearchPageContent(),
+    final viewModel = context.watch<SearchViewModel>();
+
+    return Scaffold(
+      appBar: AppBar(title: Text('Recherche de cartes Pokémon')),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          children: [
+
+            // ── Barre de recherche ──────────────────────────────────
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    decoration: InputDecoration(
+                      hintText: 'Nom du Pokémon...',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () => viewModel.onSearchPressed(_controller.text),
+                  child: Text('Rechercher'),
+                ),
+              ],
+            ),
+
+            SizedBox(height: 16),
+
+            // ── États : chargement / erreur / résultats ─────────────
+            if (viewModel.isLoading)
+              Expanded(
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (viewModel.errorMessage != null)
+              Expanded(
+                child: Center(
+                  child: Text(
+                    viewModel.errorMessage!,
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              )
+            else if (viewModel.result == null || viewModel.result!.isEmpty)
+              Expanded(
+                child: Center(child: Text('Recherchez une carte Pokémon !')),
+              )
+            else
+              Expanded(
+                child: GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.65,
+                  ),
+                  itemCount: viewModel.result?.length ?? 0,
+itemBuilder: (context, index) {
+  final card = viewModel.result![index];
+                    return _CardTile(card: card);
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
 
-class SearchPageContent extends StatelessWidget {
+// ── Tuile d'une carte ────────────────────────────────────────────────
+class _CardTile extends StatelessWidget {
+  final CardModel card;
+
+  const _CardTile({required this.card});
+
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<HomeViewModel>(context);
+    return GestureDetector(
+      onTap: () => _showCardDetail(context, card),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(viewModel.title),
+            // Image de la carte
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                child: card.images?.small != null
+                    ? Image.network(
+                        card.images!.small!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            Icon(Icons.broken_image, size: 60),
+                      )
+                    : Icon(Icons.image_not_supported, size: 60),
+              ),
+            ),
+
+            // Nom + rareté
+            Padding(
+              padding: EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    card.name,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (card.rarity != null)
+                    Text(
+                      card.rarity!,
+                      style: TextStyle(color: Colors.grey, fontSize: 11),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-      drawer: AppDrawer(),
-      body: Center(
-        child: Text('Bienvenue sur la seconde page'),
+    );
+  }
+
+  // ── Détail de la carte en popup ───────────────────────────────────
+  void _showCardDetail(BuildContext context, CardModel card) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.85,
+        builder: (_, scrollController) => SingleChildScrollView(
+          controller: scrollController,
+          padding: EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+
+              // Image grande
+              Center(
+                child: card.images?.large != null
+                    ? Image.network(card.images!.large!, height: 280)
+                    : Icon(Icons.image_not_supported, size: 100),
+              ),
+              SizedBox(height: 16),
+
+              // Nom
+              Text(
+                card.name,
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+
+              if (card.supertype != null)
+                Text(card.supertype!, style: TextStyle(color: Colors.grey)),
+
+              SizedBox(height: 12),
+              Divider(),
+              SizedBox(height: 8),
+
+              // Infos générales
+              if (card.hp != null)        _infoLine('HP', card.hp!),
+              if (card.types != null)     _infoLine('Types', card.types!.join(', ')),
+              if (card.rarity != null)    _infoLine('Rareté', card.rarity!),
+              if (card.artist != null)    _infoLine('Illustrateur', card.artist!),
+              if (card.evolvesFrom != null) _infoLine('Évolue de', card.evolvesFrom!),
+              if (card.set != null)       _infoLine('Extension', '${card.set!.name} (${card.set!.series ?? ''})'),
+              if (card.number != null && card.set?.total != null)
+                _infoLine('Numéro', '${card.number} / ${card.set!.total}'),
+
+              // Attaques
+              if (card.attacks != null && card.attacks!.isNotEmpty) ...[
+                SizedBox(height: 12),
+                Text('Attaques', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                SizedBox(height: 6),
+                ...card.attacks!.map((attack) => _attackTile(attack)),
+              ],
+
+              // Faiblesses / Résistances
+              if (card.weaknesses != null && card.weaknesses!.isNotEmpty)
+                _infoLine('Faiblesse(s)', card.weaknesses!.map((w) => '${w.type} ${w.value}').join(', ')),
+              if (card.resistances != null && card.resistances!.isNotEmpty)
+                _infoLine('Résistance(s)', card.resistances!.map((r) => '${r.type} ${r.value}').join(', ')),
+
+              SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _infoLine(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('$label : ', style: TextStyle(fontWeight: FontWeight.bold)),
+          Expanded(child: Text(value)),
+        ],
+      ),
+    );
+  }
+
+  Widget _attackTile(Attack attack) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(attack.name, style: TextStyle(fontWeight: FontWeight.bold)),
+                if (attack.text != null && attack.text!.isNotEmpty)
+                  Text(attack.text!, style: TextStyle(fontSize: 12, color: Colors.grey)),
+              ],
+            ),
+          ),
+          if (attack.damage != null && attack.damage!.isNotEmpty)
+            Text(
+              attack.damage!,
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
+            ),
+        ],
       ),
     );
   }
