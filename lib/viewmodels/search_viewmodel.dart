@@ -8,7 +8,7 @@ class SearchViewModel extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
 
-  List<CardModel>? result; // ← plus une List, un seul objet nullable
+  List<CardModel>? result; 
 
 Future<void> onSearchPressed(String query) async {
   if (query.isEmpty) return;

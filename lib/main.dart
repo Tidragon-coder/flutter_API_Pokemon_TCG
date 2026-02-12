@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:api_poke_tcg/views/home_page.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'viewmodels/home_viewmodel.dart';
-import 'viewmodels/search_viewmodel.dart'; // ← ajout
+import 'viewmodels/search_viewmodel.dart'; 
 
-void main() {
+void main() async {
+  await dotenv.load(fileName: '.env');
   runApp(
-    MultiProvider(          // ← on passe à MultiProvider
+    MultiProvider(        
       providers: [
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
-        ChangeNotifierProvider(create: (_) => SearchViewModel()), // ← ajout
+        ChangeNotifierProvider(create: (_) => SearchViewModel()), 
       ],
       child: MyApp(),
     ),
