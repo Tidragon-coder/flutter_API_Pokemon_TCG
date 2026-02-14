@@ -40,7 +40,6 @@ class SecondPage extends StatelessWidget {
 
             SizedBox(height: 16),
 
-            // ── États : chargement / erreur / résultats ─────────────
             if (viewModel.isLoading)
               Expanded(
                 child: Center(child: CircularProgressIndicator()),
@@ -62,10 +61,10 @@ class SecondPage extends StatelessWidget {
               Expanded(
                 child: GridView.builder(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.65,
+                    crossAxisCount: 4,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    childAspectRatio: 0.7,
                   ),
                   itemCount: viewModel.result?.length ?? 0,
 itemBuilder: (context, index) {
