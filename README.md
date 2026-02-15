@@ -2,6 +2,12 @@
 
 A new Flutter project.
 
+## API utilisé : tcgdex
+
+https://tcgdex.net
+
+exemple d'endpoint : https://api.tcgdex.net/v2/fr/cards
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
