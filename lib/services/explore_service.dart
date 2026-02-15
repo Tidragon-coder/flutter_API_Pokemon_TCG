@@ -6,9 +6,8 @@ class SearchService {
 
   final String _baseUrl = 'https://api.tcgdex.net/v2/fr/cards';
 
-  Future<List<CardModel>> search(String query) async {
-  final uri = Uri.parse('$_baseUrl?name=$query');
-  final response = await http.get(uri);
+  Future<List<CardModel>> search() async {
+  final response = await http.get(Uri.parse(_baseUrl));
 
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body);

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/search_result.dart';
-import '../services/search_service.dart';
+import '../services/explore_service.dart';
 
-class SearchViewModel extends ChangeNotifier {
+class ExploreViewmodel extends ChangeNotifier {
   final SearchService _service = SearchService();
 
   bool isLoading = false;
@@ -10,15 +10,14 @@ class SearchViewModel extends ChangeNotifier {
 
   List<CardModel>? result; 
 
-Future<void> onSearchPressed(String query) async {
-  if (query.isEmpty) return;
+Future<void> onSearchPressed() async {
 
   isLoading = true;
   errorMessage = null;
   notifyListeners();
 
   try {
-    result = await _service.search(query); 
+    result = await _service.search(); 
   } catch (e) {
     errorMessage = 'Erreur : $e';
     result = null;

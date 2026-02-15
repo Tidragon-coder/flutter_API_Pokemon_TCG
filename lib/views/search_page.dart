@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/search_viewmodel.dart';
 import '../models/search_result.dart';
+import 'package:api_poke_tcg/widgets/app_drawer.dart';
 
 class SecondPage extends StatelessWidget {
   final TextEditingController _controller = TextEditingController();
@@ -11,7 +12,8 @@ class SecondPage extends StatelessWidget {
     final viewModel = context.watch<SearchViewModel>();
 
     return Scaffold(
-      appBar: AppBar(title: Text('Recherche de cartes Pokémon')),
+      appBar: AppBar(title: const Text('Rechercher un Pokémon')),
+      drawer: AppDrawer(),
       body: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
